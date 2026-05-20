@@ -1,0 +1,17 @@
+{
+  "name": "derp-blockchain",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy:bsc-testnet": "hardhat run scripts/deploy.js --network bscTestnet"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "dotenv": "^17.2.1",
+    "hardhat": "^2.28.0"
+  },
+  "dependencies": {
+    "ethers": "^6.16.0"
+  }
+}

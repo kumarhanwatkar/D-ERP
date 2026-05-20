@@ -19,6 +19,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { useWeb3 } from '@/context/Web3Context';
 import { cn } from '@/lib/utils';
+import { LightModeShapes } from '@/components/ui/LightModeShapes';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -59,12 +60,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   const truncateAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
 
   return (
-    <div className="min-h-screen bg-background grid-bg">
+    <div className="min-h-screen bg-background grid-bg relative overflow-hidden">
+      <LightModeShapes variant="dashboard" />
       {/* Desktop Sidebar */}
       <motion.aside
         initial={false}
         animate={{ width: sidebarOpen ? 280 : 80 }}
-        className="fixed left-0 top-0 bottom-0 z-40 hidden lg:flex flex-col bg-card/80 backdrop-blur-xl border-r border-border"
+        className="fixed left-0 top-0 bottom-0 z-40 hidden lg:flex flex-col border-r border-border/60 bg-card/80 backdrop-blur-2xl shadow-[12px_0_40px_hsl(222_40%_10%/0.06)]"
       >
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-border">
@@ -87,7 +89,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           </Link>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-lg hover:bg-muted transition-colors"
+              className="p-2 rounded-full border border-border/60 bg-card/70 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-primary/5"
           >
             <ChevronRight
               className={cn('w-5 h-5 transition-transform', !sidebarOpen && 'rotate-180')}
@@ -104,10 +106,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200',
+                  'flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200',
                   isActive
-                    ? 'bg-primary/10 text-primary border border-primary/20'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    ? 'bg-primary/10 text-primary border border-primary/20 shadow-[0_10px_24px_hsl(217_91%_60%/0.12)]'
+                    : 'border border-transparent text-muted-foreground hover:border-border/60 hover:bg-muted/80 hover:text-foreground'
                 )}
               >
                 <item.icon className="w-5 h-5 shrink-0" />
@@ -153,7 +155,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           <button
             onClick={handleLogout}
             className={cn(
-              'mt-4 flex items-center gap-3 w-full px-4 py-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors',
+              'mt-4 flex items-center gap-3 w-full px-4 py-2 rounded-2xl text-destructive transition-all hover:-translate-y-0.5 hover:bg-destructive/10',
               !sidebarOpen && 'justify-center'
             )}
           >
@@ -166,14 +168,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 h-16 bg-card/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+          <div className="w-8 h-8 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-[0_10px_20px_hsl(217_91%_60%/0.18)]">
             <span className="text-primary-foreground font-bold">D</span>
           </div>
           <span className="font-display font-bold gradient-text">D-ERP</span>
         </Link>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 rounded-lg hover:bg-muted"
+          className="p-2 rounded-full border border-border/60 bg-card/70 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-primary/5"
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
@@ -186,7 +188,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
-            className="lg:hidden fixed inset-0 z-30 bg-background pt-16"
+            className="lg:hidden fixed inset-0 z-30 bg-background/96 pt-16 backdrop-blur-2xl"
           >
             <nav className="p-4 space-y-2">
               {navItems.map((item) => {
@@ -197,10 +199,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                     to={item.path}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
-                      'flex items-center gap-3 px-4 py-3 rounded-xl transition-all',
+                      'flex items-center gap-3 px-4 py-3 rounded-2xl transition-all',
                       isActive
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-muted-foreground hover:bg-muted'
+                        ? 'bg-primary/10 text-primary border border-primary/20'
+                        : 'border border-transparent text-muted-foreground hover:border-border/60 hover:bg-muted/80 hover:text-foreground'
                     )}
                   >
                     <item.icon className="w-5 h-5" />
@@ -210,7 +212,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               })}
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-destructive hover:bg-destructive/10"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-destructive transition-all hover:bg-destructive/10"
               >
                 <LogOut className="w-5 h-5" />
                 <span>Logout</span>
@@ -236,11 +238,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             <p className="text-sm text-muted-foreground">{user?.organizationName}</p>
           </div>
           <div className="flex items-center gap-4">
-            <button className="p-2 rounded-lg hover:bg-muted relative">
+            <button className="relative rounded-full border border-border/60 bg-card/80 p-2.5 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-primary/5">
               <Bell className="w-5 h-5" />
               <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary" />
             </button>
-            <div className="px-4 py-2 rounded-lg bg-muted">
+            <div className="rounded-full border border-border/60 bg-card/80 px-4 py-2 shadow-sm">
               <p className="text-xs text-muted-foreground">Balance</p>
               <p className="font-semibold text-primary">{balance} BNB</p>
             </div>

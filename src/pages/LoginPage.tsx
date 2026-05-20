@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Wallet, Shield, ArrowRight, User, Building2 } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { NeonButton } from '@/components/ui/NeonButton';
+import { LightModeShapes } from '@/components/ui/LightModeShapes';
 import { useWeb3 } from '@/context/Web3Context';
 import { useAuth, UserRole } from '@/context/AuthContext';
+import { backendApi } from '@/lib/backendApi';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { connectWallet, isConnected, account, isLoading } = useWeb3();
   const { login } = useAuth();
   const [selectedRole, setSelectedRole] = useState<UserRole>(null);
-  const [step, setStep] = useState<'connect' | 'role' | 'complete'>('connect');
+  const [step, setStep] = useState<'connect' | 'role' | 'signing' | 'complete'>('connect');
+  const [error, setError] = useState<string | null>(null);
+  const inviteCode = searchParams.get('invite') || undefined;
 
   const handleConnect = async () => {
     await connectWallet();
@@ -24,15 +29,48 @@ const LoginPage: React.FC = () => {
     setSelectedRole(role);
   };
 
-  const handleLogin = () => {
-    if (selectedRole && account) {
-      login(account, selectedRole);
-      navigate(selectedRole === 'admin' ? '/admin' : '/employee');
+  const handleLogin = async () => {
+    if (!selectedRole || !account) return;
+
+    setError(null);
+    setStep('signing');
+
+    try {
+      const { nonceId, nonce } = await backendApi.requestNonce(account);
+      let signature = '';
+
+      if (typeof window.ethereum !== 'undefined') {
+        signature = await window.ethereum.request<string>({
+          method: 'personal_sign',
+          params: [nonce, account],
+        });
+      }
+
+      const payload = {
+        walletAddress: account,
+        signature,
+        nonceId,
+        role: selectedRole,
+        inviteCode,
+        organizationName: 'TechForge Industries',
+      };
+
+      const response = selectedRole === 'admin'
+        ? await backendApi.registerAdmin(payload)
+        : await backendApi.verifySignature(payload);
+
+      login(account, response.role, response.user, response.token);
+      setStep('complete');
+      navigate(response.role === 'admin' ? '/admin' : '/employee');
+    } catch (loginError) {
+      setStep('role');
+      setError(loginError instanceof Error ? loginError.message : 'Login failed');
     }
   };
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
+      <LightModeShapes variant="public" />
       <Navbar />
 
       {/* Background Effects */}
@@ -54,7 +92,8 @@ const LoginPage: React.FC = () => {
             </h1>
             <p className="text-muted-foreground">
               {step === 'connect' && 'Use MetaMask or any Web3 wallet to get started'}
-              {step === 'role' && 'Choose how you want to access D-ERP'}
+              {step === 'role' && (inviteCode ? 'Continue your invited employee wallet flow' : 'Choose how you want to access D-ERP')}
+              {step === 'signing' && 'Waiting for your wallet signature...'}
               {step === 'complete' && 'Redirecting to your dashboard...'}
             </p>
           </motion.div>
@@ -167,11 +206,16 @@ const LoginPage: React.FC = () => {
                   className="w-full"
                   size="lg"
                   onClick={handleLogin}
-                  disabled={!selectedRole}
+                  disabled={!selectedRole || step === 'signing'}
+                  loading={step === 'signing'}
                 >
                   Continue to Dashboard
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </NeonButton>
+
+                {error && (
+                  <p className="text-sm text-destructive text-center">{error}</p>
+                )}
               </motion.div>
             )}
           </GlassCard>

@@ -14,7 +14,10 @@ import {
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { StreamingNumber } from '@/components/ui/StreamingNumber';
+import TransparencyDashboard from '@/components/ui/TransparencyDashboard';
 import { useAuth } from '@/context/AuthContext';
+import { useRealtime } from '@/context/RealtimeContext';
+import { backendApi } from '@/lib/backendApi';
 import {
   LineChart,
   Line,
@@ -64,6 +67,47 @@ const recentTransactions = [
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
+  const { socket } = useRealtime();
+  const [dashboardData, setDashboardData] = React.useState<any>(null);
+
+  const loadDashboard = React.useCallback(() => {
+    backendApi.getAdminDashboard().then(setDashboardData).catch(() => {
+      setDashboardData(null);
+    });
+  }, []);
+
+  React.useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
+
+  React.useEffect(() => {
+    if (!socket) return;
+
+    const refresh = () => loadDashboard();
+    socket.on('dashboard:update', refresh);
+    socket.on('payroll:update', refresh);
+    socket.on('resource:update', refresh);
+
+    return () => {
+      socket.off('dashboard:update', refresh);
+      socket.off('payroll:update', refresh);
+      socket.off('resource:update', refresh);
+    };
+  }, [socket, loadDashboard]);
+
+  const dashboardSummary = dashboardData?.summary || {
+    totalEmployees: 55,
+    payrollStreaming: 4250.75,
+    yieldGenerated: 12847.32,
+    activeResources: 42,
+    averageUtilization: 92,
+    activeStreams: 3,
+  };
+
+  const payrollSeries = dashboardData?.charts?.payrollSeries || payrollData;
+  const yieldSeries = dashboardData?.charts?.yieldSeries || yieldData;
+  const departmentSeries = dashboardData?.charts?.departmentData || departmentData;
+  const transactionSeries = dashboardData?.recentTransactions || recentTransactions;
 
   return (
     <DashboardLayout>
@@ -84,10 +128,10 @@ const AdminDashboard: React.FC = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
+          {([
             {
               title: 'Total Employees',
-              value: 55,
+              value: dashboardSummary.totalEmployees,
               change: '+3',
               changeType: 'positive',
               icon: Users,
@@ -95,7 +139,7 @@ const AdminDashboard: React.FC = () => {
             },
             {
               title: 'Payroll Streaming',
-              value: 4250.75,
+              value: dashboardSummary.payrollStreaming,
               prefix: '$',
               suffix: '/hr',
               streaming: true,
@@ -104,7 +148,7 @@ const AdminDashboard: React.FC = () => {
             },
             {
               title: 'Yield Generated',
-              value: 12847.32,
+              value: dashboardSummary.yieldGenerated,
               prefix: '$',
               change: '+12.5%',
               changeType: 'positive',
@@ -113,21 +157,21 @@ const AdminDashboard: React.FC = () => {
             },
             {
               title: 'Active Resources',
-              value: 42,
+              value: dashboardSummary.activeResources,
               suffix: '/50',
-              change: '84%',
+              change: `${dashboardSummary.averageUtilization}%`,
               changeType: 'neutral',
               icon: Server,
               color: 'orange',
             },
-          ].map((stat, index) => (
+          ] as const).map((stat, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <GlassCard className="p-6" variant="glow" neonColor={stat.color as any}>
+              <GlassCard className="p-6" variant="glow" neonColor={stat.color}>
                 <div className="flex items-start justify-between mb-4">
                   <div className={`p-3 rounded-lg bg-neon-${stat.color}/10`}>
                     <stat.icon className={`w-6 h-6 text-neon-${stat.color}`} />
@@ -189,7 +233,7 @@ const AdminDashboard: React.FC = () => {
                 </select>
               </div>
               <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={payrollData}>
+                <AreaChart data={payrollSeries}>
                   <defs>
                     <linearGradient id="payrollGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(187, 100%, 42%)" stopOpacity={0.3} />
@@ -229,8 +273,8 @@ const AdminDashboard: React.FC = () => {
               <p className="text-sm text-muted-foreground mb-6">By department</p>
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
-                  <Pie
-                    data={departmentData}
+                    <Pie
+                      data={departmentSeries}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -238,7 +282,7 @@ const AdminDashboard: React.FC = () => {
                     dataKey="value"
                     stroke="none"
                   >
-                    {departmentData.map((entry, index) => (
+                    {departmentSeries.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -280,7 +324,7 @@ const AdminDashboard: React.FC = () => {
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={yieldData}>
+                <BarChart data={yieldSeries}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(222, 30%, 18%)" />
                   <XAxis dataKey="name" stroke="hsl(215, 20%, 65%)" />
                   <YAxis stroke="hsl(215, 20%, 65%)" />
@@ -309,7 +353,7 @@ const AdminDashboard: React.FC = () => {
                 <button className="text-sm text-primary hover:underline">View all</button>
               </div>
               <div className="space-y-4">
-                {recentTransactions.map((tx) => (
+                {transactionSeries.map((tx) => (
                   <div
                     key={tx.id}
                     className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
@@ -342,6 +386,18 @@ const AdminDashboard: React.FC = () => {
             </GlassCard>
           </motion.div>
         </div>
+
+        {/* Transparency Dashboard */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+        >
+          <TransparencyDashboard
+            transactions={[]}
+            liveStream={true}
+          />
+        </motion.div>
       </div>
     </DashboardLayout>
   );

@@ -18,6 +18,8 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { StreamingNumber } from '@/components/ui/StreamingNumber';
+import { backendApi } from '@/lib/backendApi';
+import { useRealtime } from '@/context/RealtimeContext';
 
 interface Employee {
   id: string;
@@ -86,16 +88,41 @@ const employees: Employee[] = [
 const PayrollPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [employeeRows, setEmployeeRows] = useState(employees);
+  const { socket } = useRealtime();
 
-  const filteredEmployees = employees.filter((emp) => {
+  const loadPayroll = React.useCallback(() => {
+    backendApi.getPayrollEntries().then((response) => {
+      if (Array.isArray(response.entries)) {
+        setEmployeeRows(response.entries);
+      }
+    }).catch(() => {
+      setEmployeeRows(employees);
+    });
+  }, []);
+
+  React.useEffect(() => {
+    loadPayroll();
+  }, [loadPayroll]);
+
+  React.useEffect(() => {
+    if (!socket) return;
+    const refresh = () => loadPayroll();
+    socket.on('payroll:update', refresh);
+    return () => {
+      socket.off('payroll:update', refresh);
+    };
+  }, [socket, loadPayroll]);
+
+  const filteredEmployees = employeeRows.filter((emp) => {
     const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       emp.department.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || emp.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
 
-  const totalPayrollThisMonth = employees.reduce((sum, emp) => sum + emp.totalEarned, 0);
-  const activeStreams = employees.filter(e => e.status === 'active').length;
+  const totalPayrollThisMonth = employeeRows.reduce((sum, emp) => sum + emp.totalEarned, 0);
+  const activeStreams = employeeRows.filter(e => e.status === 'active').length;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -273,11 +300,27 @@ const PayrollPage: React.FC = () => {
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         {employee.status === 'active' ? (
-                          <button className="p-2 rounded-lg hover:bg-warning/10 text-warning transition-colors">
+                          <button
+                            className="p-2 rounded-lg hover:bg-warning/10 text-warning transition-colors"
+                            onClick={async () => {
+                              await backendApi.updatePayrollStatus(employee.id, 'paused');
+                              setEmployeeRows((current) =>
+                                current.map((row) => (row.id === employee.id ? { ...row, status: 'paused' } : row))
+                              );
+                            }}
+                          >
                             <Pause className="w-4 h-4" />
                           </button>
                         ) : employee.status === 'paused' ? (
-                          <button className="p-2 rounded-lg hover:bg-success/10 text-success transition-colors">
+                          <button
+                            className="p-2 rounded-lg hover:bg-success/10 text-success transition-colors"
+                            onClick={async () => {
+                              await backendApi.updatePayrollStatus(employee.id, 'active');
+                              setEmployeeRows((current) =>
+                                current.map((row) => (row.id === employee.id ? { ...row, status: 'active' } : row))
+                              );
+                            }}
+                          >
                             <Play className="w-4 h-4" />
                           </button>
                         ) : null}

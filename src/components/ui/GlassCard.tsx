@@ -35,18 +35,19 @@ export const GlassCard: React.FC<GlassCardProps> = ({
     <motion.div
       onClick={onClick}
       className={cn(
-        'relative overflow-hidden rounded-xl border bg-card/60 backdrop-blur-xl transition-all duration-300',
+        'relative overflow-hidden rounded-2xl border bg-card/70 backdrop-blur-2xl transition-all duration-300',
         variant === 'glow' && glowClasses[neonColor],
         variant === 'neon' && neonBorderClasses[neonColor],
-        variant === 'default' && 'border-border/50 hover:border-border',
+        variant === 'default' && 'border-border/60 hover:border-border/80',
         onClick && 'cursor-pointer',
         className
       )}
-      whileHover={{ scale: onClick ? 1.02 : 1 }}
+      whileHover={{ scale: onClick ? 1.015 : 1 }}
       transition={{ duration: 0.2 }}
     >
       {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/6 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 opacity-70 pointer-events-none bg-[radial-gradient(circle_at_top_right,hsl(187_100%_50%/0.08),transparent_38%)]" />
       
       {/* Content */}
       <div className="relative z-10">{children}</div>

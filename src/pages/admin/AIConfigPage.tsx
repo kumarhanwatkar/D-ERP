@@ -13,12 +13,13 @@ import {
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { NeonButton } from '@/components/ui/NeonButton';
+import { backendApi } from '@/lib/backendApi';
 
 interface GeneratedWidget {
   id: string;
   type: 'stat' | 'chart' | 'table' | 'list';
   title: string;
-  config: any;
+  config: Record<string, unknown>;
 }
 
 const AIConfigPage: React.FC = () => {
@@ -37,38 +38,19 @@ const AIConfigPage: React.FC = () => {
     if (!prompt.trim()) return;
 
     setIsGenerating(true);
-
-    // Simulate AI generation
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const mockConfig = {
-      organization: {
-        name: 'TechForge Industries',
-        departments: ['Manufacturing', 'QA', 'Assembly'],
-        totalEmployees: 50,
-      },
-      resources: {
-        machines: 10,
-        type: 'CNC',
-        utilizationTarget: 85,
-      },
-      widgets: [
-        { id: '1', type: 'stat', title: 'Total Workforce', config: { value: 50, icon: 'users' } },
-        { id: '2', type: 'stat', title: 'Active Machines', config: { value: 10, icon: 'server' } },
-        { id: '3', type: 'chart', title: 'Department Distribution', config: { type: 'pie' } },
-        { id: '4', type: 'chart', title: 'Payroll Trend', config: { type: 'line' } },
-        { id: '5', type: 'table', title: 'Top Performers', config: { rows: 5 } },
-        { id: '6', type: 'stat', title: 'Avg Utilization', config: { value: 87, suffix: '%' } },
-      ],
-    };
-
-    setGeneratedConfig(JSON.stringify(mockConfig, null, 2));
-    setWidgets(mockConfig.widgets as GeneratedWidget[]);
-    setIsGenerating(false);
+    try {
+      const mockConfig = await backendApi.generateAiConfig(prompt);
+      setGeneratedConfig(JSON.stringify(mockConfig, null, 2));
+      setWidgets(mockConfig.widgets as GeneratedWidget[]);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
-  const handleApplyConfig = () => {
-    // Apply configuration to dashboard
+  const handleApplyConfig = async () => {
+    if (!generatedConfig) return;
+
+    await backendApi.saveAiConfig(JSON.parse(generatedConfig));
     alert('Dashboard configuration applied! Your AI-generated widgets are now active.');
   };
 

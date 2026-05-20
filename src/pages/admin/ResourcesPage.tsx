@@ -16,6 +16,8 @@ import {
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { NeonButton } from '@/components/ui/NeonButton';
+import { useRealtime } from '@/context/RealtimeContext';
+import { backendApi } from '@/lib/backendApi';
 
 interface Resource {
   id: string;
@@ -94,18 +96,57 @@ const resources: Resource[] = [
 const ResourcesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
+  const { socket } = useRealtime();
 
-  const filteredResources = resources.filter((res) => {
+  const [resourceRows, setResourceRows] = useState(resources);
+
+  const loadResources = React.useCallback(() => {
+    backendApi.getResources().then((response) => {
+      if (Array.isArray(response.resources) && response.resources.length > 0) {
+        setResourceRows(
+          response.resources.map((item) => ({
+            id: item.id,
+            name: item.name,
+            type: item.type,
+            status: item.status,
+            utilization: Number(item.utilization || 0),
+            department: item.department,
+            lastMaintenance: item.lastMaintenance || new Date().toISOString().slice(0, 10),
+            efficiency: Number(item.efficiency || 90),
+          }))
+        );
+        return;
+      }
+      setResourceRows(resources);
+    }).catch(() => {
+      setResourceRows(resources);
+    });
+  }, []);
+
+  React.useEffect(() => {
+    loadResources();
+  }, [loadResources]);
+
+  React.useEffect(() => {
+    if (!socket) return;
+    const refresh = () => loadResources();
+    socket.on('resource:update', refresh);
+    return () => {
+      socket.off('resource:update', refresh);
+    };
+  }, [socket, loadResources]);
+
+  const filteredResources = resourceRows.filter((res) => {
     const matchesSearch = res.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       res.department.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterType === 'all' || res.type === filterType;
     return matchesSearch && matchesFilter;
   });
 
-  const operationalCount = resources.filter(r => r.status === 'operational').length;
-  const maintenanceCount = resources.filter(r => r.status === 'maintenance').length;
-  const offlineCount = resources.filter(r => r.status === 'offline').length;
-  const avgUtilization = Math.round(resources.filter(r => r.status === 'operational')
+  const operationalCount = resourceRows.filter(r => r.status === 'operational').length;
+  const maintenanceCount = resourceRows.filter(r => r.status === 'maintenance').length;
+  const offlineCount = resourceRows.filter(r => r.status === 'offline').length;
+  const avgUtilization = Math.round(resourceRows.filter(r => r.status === 'operational')
     .reduce((sum, r) => sum + r.utilization, 0) / operationalCount);
 
   const getStatusColor = (status: string) => {
@@ -159,7 +200,7 @@ const ResourcesPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Resources</p>
-                <p className="text-2xl font-bold">{resources.length}</p>
+                <p className="text-2xl font-bold">{resourceRows.length}</p>
               </div>
             </div>
           </GlassCard>

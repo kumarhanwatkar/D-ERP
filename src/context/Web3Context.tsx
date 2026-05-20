@@ -1,5 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+interface EthereumProvider {
+  request<T = unknown>(args: { method: string; params?: unknown[] }): Promise<T>;
+  on(event: 'accountsChanged', handler: (accounts: string[]) => void): void;
+  on(event: 'chainChanged', handler: (chainIdHex: string) => void): void;
+  removeAllListeners(event?: string): void;
+}
+
 interface Web3ContextType {
   account: string | null;
   isConnected: boolean;
@@ -28,19 +35,20 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
 
     try {
       if (typeof window.ethereum !== 'undefined') {
-        const accounts = await window.ethereum.request({
+        const ethereum = window.ethereum;
+        const accounts = await ethereum.request<string[]>({
           method: 'eth_requestAccounts',
         });
 
         if (accounts.length > 0) {
           setAccount(accounts[0]);
           
-          const chainIdHex = await window.ethereum.request({
+          const chainIdHex = await ethereum.request<string>({
             method: 'eth_chainId',
           });
           setChainId(parseInt(chainIdHex, 16));
 
-          const balanceHex = await window.ethereum.request({
+          const balanceHex = await ethereum.request<string>({
             method: 'eth_getBalance',
             params: [accounts[0], 'latest'],
           });
@@ -53,8 +61,8 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
         setChainId(97); // BSC Testnet
         setBalance('2.5847');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to connect wallet');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to connect wallet');
       // Fallback to demo mode
       setAccount('0x742d35Cc6634C0532925a3b844Bc9e7595f8dE71');
       setChainId(97);
@@ -72,7 +80,9 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (typeof window.ethereum !== 'undefined') {
-      window.ethereum.on('accountsChanged', (accounts: string[]) => {
+      const ethereum = window.ethereum as EthereumProvider;
+
+      ethereum.on('accountsChanged', (accounts: string[]) => {
         if (accounts.length > 0) {
           setAccount(accounts[0]);
         } else {
@@ -80,15 +90,16 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
         }
       });
 
-      window.ethereum.on('chainChanged', (chainIdHex: string) => {
+      ethereum.on('chainChanged', (chainIdHex: string) => {
         setChainId(parseInt(chainIdHex, 16));
       });
     }
 
     return () => {
       if (typeof window.ethereum !== 'undefined') {
-        window.ethereum.removeAllListeners('accountsChanged');
-        window.ethereum.removeAllListeners('chainChanged');
+        const ethereum = window.ethereum as EthereumProvider;
+        ethereum.removeAllListeners('accountsChanged');
+        ethereum.removeAllListeners('chainChanged');
       }
     };
   }, []);
@@ -121,6 +132,6 @@ export const useWeb3 = () => {
 
 declare global {
   interface Window {
-    ethereum?: any;
+    ethereum?: EthereumProvider;
   }
 }

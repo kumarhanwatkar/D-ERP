@@ -25,23 +25,23 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
   onClick,
   type = 'button',
 }) => {
-  const baseClasses = 'relative inline-flex items-center justify-center font-semibold transition-all duration-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseClasses = 'relative inline-flex items-center justify-center gap-2 font-semibold tracking-wide transition-all duration-300 rounded-full border disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-offset-2';
 
   const variantClasses = {
-    primary: 'bg-gradient-to-r from-primary to-secondary text-primary-foreground hover:opacity-90',
-    secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-    outline: 'border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground',
-    ghost: 'text-foreground hover:bg-muted',
+    primary: 'border-transparent bg-gradient-to-r from-primary via-primary/90 to-secondary text-primary-foreground shadow-[0_14px_30px_hsl(217_91%_60%/0.22)] hover:-translate-y-0.5 hover:shadow-[0_18px_40px_hsl(217_91%_60%/0.3)]',
+    secondary: 'border-border/70 bg-card/80 text-foreground backdrop-blur-md hover:-translate-y-0.5 hover:border-primary/30 hover:bg-primary/5',
+    outline: 'border border-primary/30 bg-transparent text-primary hover:-translate-y-0.5 hover:bg-primary/10 hover:border-primary/50',
+    ghost: 'border-transparent bg-transparent text-foreground hover:bg-muted/70 hover:text-foreground',
   };
 
   const sizeClasses = {
     sm: 'px-4 py-2 text-sm',
-    md: 'px-6 py-3 text-base',
-    lg: 'px-8 py-4 text-lg',
+    md: 'px-5 py-3 text-sm md:text-base',
+    lg: 'px-7 py-4 text-base md:text-lg',
   };
 
   const glowClasses = glow && variant === 'primary' 
-    ? 'shadow-[0_0_20px_hsl(187_100%_50%/0.4)] hover:shadow-[0_0_30px_hsl(187_100%_50%/0.6)]' 
+    ? 'shadow-[0_0_20px_hsl(187_100%_50%/0.28)] hover:shadow-[0_0_30px_hsl(187_100%_50%/0.45)]' 
     : '';
 
   return (

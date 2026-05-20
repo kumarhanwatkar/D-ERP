@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import {
   Wallet,
   TrendingUp,
@@ -14,7 +15,9 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { StreamingNumber } from '@/components/ui/StreamingNumber';
 import { useAuth } from '@/context/AuthContext';
+import { useRealtime } from '@/context/RealtimeContext';
 import { useWeb3 } from '@/context/Web3Context';
+import { backendApi } from '@/lib/backendApi';
 import {
   LineChart,
   Line,
@@ -48,13 +51,45 @@ const transactionHistory = [
 const EmployeeDashboard: React.FC = () => {
   const { user } = useAuth();
   const { balance, account } = useWeb3();
+  const { socket } = useRealtime();
+  const [dashboardData, setDashboardData] = React.useState<any>(null);
 
-  const hourlyRate = user?.hourlyRate || 25;
-  const hoursWorkedToday = 6.5;
-  const todayEarnings = hourlyRate * hoursWorkedToday;
-  const lockedFunds = 1250.00;
-  const yieldGenerated = 156.25;
-  const lockPeriodRemaining = 8; // days
+  const loadDashboard = React.useCallback(() => {
+    if (!user) return;
+    backendApi.getEmployeeDashboard(user.id).then(setDashboardData).catch(() => {
+      setDashboardData(null);
+    });
+  }, [user]);
+
+  React.useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
+
+  React.useEffect(() => {
+    if (!socket || !user) return;
+    const refresh = (payload: { userId?: string }) => {
+      if (!payload.userId || payload.userId === user.id) {
+        loadDashboard();
+      }
+    };
+    socket.on('dashboard:update', refresh);
+    socket.on('settings:update', refresh);
+    return () => {
+      socket.off('dashboard:update', refresh);
+      socket.off('settings:update', refresh);
+    };
+  }, [socket, user, loadDashboard]);
+
+  const hourlyRate = dashboardData?.summary?.hourlyRate || user?.hourlyRate || 25;
+  const hoursWorkedToday = dashboardData?.summary?.hoursWorkedToday || 6.5;
+  const todayEarnings = dashboardData?.summary?.todayEarnings || hourlyRate * hoursWorkedToday;
+  const lockedFunds = dashboardData?.summary?.lockedFunds || 1250.0;
+  const yieldGenerated = dashboardData?.summary?.yieldGenerated || 156.25;
+  const lockPeriodRemaining = dashboardData?.summary?.lockPeriodRemaining || 8; // days
+  const walletBalance = dashboardData?.summary?.walletBalance || Number(balance);
+  const monthlyTotal = dashboardData?.summary?.monthTotal || 2847.5;
+  const weeklyEarningsSeries = dashboardData?.charts?.weeklyEarnings || earningsData;
+  const transactionRows = dashboardData?.transactions || transactionHistory;
 
   return (
     <DashboardLayout>
@@ -103,11 +138,11 @@ const EmployeeDashboard: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-muted/50">
                   <p className="text-xs text-muted-foreground mb-1">Wallet Balance</p>
-                  <p className="text-xl font-bold">{balance} BNB</p>
+                  <p className="text-xl font-bold">{walletBalance} BNB</p>
                 </div>
                 <div className="p-4 rounded-xl bg-muted/50">
                   <p className="text-xs text-muted-foreground mb-1">This Month</p>
-                  <p className="text-xl font-bold text-success">$2,847.50</p>
+                  <p className="text-xl font-bold text-success">${monthlyTotal}</p>
                 </div>
               </div>
             </div>
@@ -116,7 +151,7 @@ const EmployeeDashboard: React.FC = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
+          {([
             {
               title: 'Hours Today',
               value: hoursWorkedToday,
@@ -145,14 +180,14 @@ const EmployeeDashboard: React.FC = () => {
               icon: Calendar,
               color: 'orange',
             },
-          ].map((stat, index) => (
+          ] as const).map((stat, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 + index * 0.1 }}
             >
-              <GlassCard className="p-6" variant="neon" neonColor={stat.color as any}>
+              <GlassCard className="p-6" variant="neon" neonColor={stat.color}>
                 <div className={`p-3 rounded-lg bg-neon-${stat.color}/10 w-fit mb-4`}>
                   <stat.icon className={`w-5 h-5 text-neon-${stat.color}`} />
                 </div>
@@ -187,7 +222,7 @@ const EmployeeDashboard: React.FC = () => {
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={250}>
-                <AreaChart data={earningsData}>
+                <AreaChart data={weeklyEarningsSeries}>
                   <defs>
                     <linearGradient id="earningsGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(187, 100%, 42%)" stopOpacity={0.3} />
@@ -225,10 +260,12 @@ const EmployeeDashboard: React.FC = () => {
             <GlassCard className="p-6" variant="default">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-display font-bold">Transaction History</h3>
-                <button className="text-sm text-primary hover:underline">View all</button>
+                <Link to="/employee/transactions" className="text-sm text-primary hover:underline">
+                  View all
+                </Link>
               </div>
               <div className="space-y-3">
-                {transactionHistory.map((tx) => (
+                {transactionRows.map((tx) => (
                   <div
                     key={tx.id}
                     className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"

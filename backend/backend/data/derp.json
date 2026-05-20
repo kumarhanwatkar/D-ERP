@@ -1,0 +1,216 @@
+{
+  "users": [
+    {
+      "id": "u-admin-1",
+      "walletAddress": "0x742d35Cc6634C0532925a3b844Bc9e7595f8dE71",
+      "role": "admin",
+      "name": "Ayush Bhujade",
+      "email": "admin@derp.io",
+      "organizationName": "TechForge Industries",
+      "department": null,
+      "hourlyRate": null
+    },
+    {
+      "id": "u-emp-1",
+      "walletAddress": "0x8Ba1f109551bD432803012645Ac136ddd64DBA72",
+      "role": "employee",
+      "name": "Kumar Hanwatkar",
+      "email": "kumar@derp.io",
+      "organizationName": "TechForge Industries",
+      "department": "Engineering",
+      "hourlyRate": 25
+    },
+    {
+      "id": "u-emp-2",
+      "walletAddress": "0x742d35Cc6634C0532925a3b844Bc9e7595f8dE71",
+      "role": "employee",
+      "name": "Ayush Dongarwar",
+      "email": "ayush@derp.io",
+      "organizationName": "TechForge Industries",
+      "department": "Engineering",
+      "hourlyRate": 28
+    },
+    {
+      "id": "u-emp-3",
+      "walletAddress": "0x2932b7A2355D6fecc4b5c0B6BD44cC31df247a2e",
+      "role": "employee",
+      "name": "Jitendra Chandankhede",
+      "email": "jitendra@derp.io",
+      "organizationName": "TechForge Industries",
+      "department": "Operations",
+      "hourlyRate": 22
+    },
+    {
+      "id": "u-emp-4",
+      "walletAddress": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+      "role": "employee",
+      "name": "Priya Sharma",
+      "email": "priya@derp.io",
+      "organizationName": "TechForge Industries",
+      "department": "Sales",
+      "hourlyRate": 24
+    }
+  ],
+  "payrollEntries": [
+    {
+      "id": "p-1",
+      "userId": "u-emp-1",
+      "name": "Kumar Hanwatkar",
+      "department": "Engineering",
+      "walletAddress": "0x8Ba1f109551bD432803012645Ac136ddd64DBA72",
+      "hourlyRate": 25,
+      "status": "active",
+      "hoursThisMonth": 160,
+      "totalEarned": 4000
+    },
+    {
+      "id": "p-2",
+      "userId": "u-emp-2",
+      "name": "Ayush Dongarwar",
+      "department": "Engineering",
+      "walletAddress": "0x742d35Cc6634C0532925a3b844Bc9e7595f8dE71",
+      "hourlyRate": 28,
+      "status": "active",
+      "hoursThisMonth": 152,
+      "totalEarned": 4256
+    },
+    {
+      "id": "p-3",
+      "userId": "u-emp-3",
+      "name": "Jitendra Chandankhede",
+      "department": "Operations",
+      "walletAddress": "0x2932b7A2355D6fecc4b5c0B6BD44cC31df247a2e",
+      "hourlyRate": 22,
+      "status": "paused",
+      "hoursThisMonth": 120,
+      "totalEarned": 2640
+    },
+    {
+      "id": "p-4",
+      "userId": "u-emp-4",
+      "name": "Priya Sharma",
+      "department": "Sales",
+      "walletAddress": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+      "hourlyRate": 24,
+      "status": "active",
+      "hoursThisMonth": 168,
+      "totalEarned": 4032
+    }
+  ],
+  "resources": [
+    {
+      "id": "r-1",
+      "name": "CNC Machine A1",
+      "type": "machine",
+      "status": "operational",
+      "utilization": 87,
+      "department": "Manufacturing",
+      "lastMaintenance": "2025-01-15",
+      "efficiency": 94
+    },
+    {
+      "id": "r-2",
+      "name": "CNC Machine A2",
+      "type": "machine",
+      "status": "operational",
+      "utilization": 92,
+      "department": "Manufacturing",
+      "lastMaintenance": "2025-01-20",
+      "efficiency": 91
+    },
+    {
+      "id": "r-3",
+      "name": "Lathe Machine B1",
+      "type": "machine",
+      "status": "maintenance",
+      "utilization": 0,
+      "department": "Manufacturing",
+      "lastMaintenance": "2025-02-01",
+      "efficiency": 88
+    },
+    {
+      "id": "r-4",
+      "name": "Production Server",
+      "type": "server",
+      "status": "operational",
+      "utilization": 65,
+      "department": "IT",
+      "lastMaintenance": "2025-01-25",
+      "efficiency": 99
+    }
+  ],
+  "transactions": [
+    {
+      "id": "t-1",
+      "txHash": "0x1a2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890",
+      "type": "payroll",
+      "from": "0x742d35Cc6634C0532925a3b844Bc9e7595f8dE71",
+      "to": "0x8Ba1f109551bD432803012645Ac136ddd64DBA72",
+      "amount": 25,
+      "token": "USDT",
+      "timestamp": "2025-02-04 10:30:00",
+      "status": "confirmed",
+      "blockNumber": 45678901,
+      "userId": "u-emp-1"
+    },
+    {
+      "id": "t-2",
+      "txHash": "0x2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890ab",
+      "type": "yield",
+      "from": "Hot Wallet",
+      "to": "Trading Bot",
+      "amount": 342.8,
+      "token": "USDT",
+      "timestamp": "2025-02-04 09:15:00",
+      "status": "confirmed",
+      "blockNumber": 45678850,
+      "userId": "u-admin-1"
+    },
+    {
+      "id": "t-3",
+      "txHash": "0x3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890abcd",
+      "type": "payroll",
+      "from": "0x742d35Cc6634C0532925a3b844Bc9e7595f8dE71",
+      "to": "0x2932b7A2355D6fecc4b5c0B6BD44cC31df247a2e",
+      "amount": 22,
+      "token": "USDT",
+      "timestamp": "2025-02-04 07:30:00",
+      "status": "confirmed",
+      "blockNumber": 45678650,
+      "userId": "u-emp-3"
+    }
+  ],
+  "adminSettings": {
+    "orgName": "TechForge Industries",
+    "payrollApproval": true,
+    "emailAlerts": true,
+    "riskLevel": "medium"
+  },
+  "employeeSettings": {
+    "u-emp-1": {
+      "alerts": true,
+      "autoLock": true,
+      "lockedPercentage": 85,
+      "accessiblePercentage": 15
+    },
+    "u-emp-2": {
+      "alerts": true,
+      "autoLock": true,
+      "lockedPercentage": 85,
+      "accessiblePercentage": 15
+    },
+    "u-emp-3": {
+      "alerts": true,
+      "autoLock": true,
+      "lockedPercentage": 85,
+      "accessiblePercentage": 15
+    },
+    "u-emp-4": {
+      "alerts": true,
+      "autoLock": true,
+      "lockedPercentage": 85,
+      "accessiblePercentage": 15
+    }
+  },
+  "aiConfigs": []
+}

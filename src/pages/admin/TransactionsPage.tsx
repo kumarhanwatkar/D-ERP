@@ -15,6 +15,7 @@ import {
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { NeonButton } from '@/components/ui/NeonButton';
+import { backendApi } from '@/lib/backendApi';
 
 interface Transaction {
   id: string;
@@ -107,8 +108,30 @@ const transactions: Transaction[] = [
 const TransactionsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
+  const [transactionRows, setTransactionRows] = useState(transactions);
 
-  const filteredTransactions = transactions.filter((tx) => {
+  React.useEffect(() => {
+    backendApi.getTransactions().then((response) => {
+      if (Array.isArray(response.transactions) && response.transactions.length > 0) {
+        setTransactionRows(response.transactions.map((row: any) => ({
+          id: row.id,
+          txHash: row.txHash || row.hash,
+          type: row.type,
+          from: row.from,
+          to: row.to,
+          amount: Number(row.amount),
+          token: row.token || 'USDT',
+          timestamp: row.timestamp,
+          status: row.status,
+          blockNumber: Number(row.blockNumber || 45678000),
+        })));
+      }
+    }).catch(() => {
+      setTransactionRows(transactions);
+    });
+  }, []);
+
+  const filteredTransactions = transactionRows.filter((tx) => {
     const matchesSearch = tx.txHash.toLowerCase().includes(searchTerm.toLowerCase()) ||
       tx.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
       tx.to.toLowerCase().includes(searchTerm.toLowerCase());
@@ -116,9 +139,9 @@ const TransactionsPage: React.FC = () => {
     return matchesSearch && matchesFilter;
   });
 
-  const totalVolume = transactions.reduce((sum, tx) => sum + tx.amount, 0);
-  const payrollCount = transactions.filter(tx => tx.type === 'payroll').length;
-  const yieldCount = transactions.filter(tx => tx.type === 'yield').length;
+  const totalVolume = transactionRows.reduce((sum, tx) => sum + tx.amount, 0);
+  const payrollCount = transactionRows.filter(tx => tx.type === 'payroll').length;
+  const yieldCount = transactionRows.filter(tx => tx.type === 'yield').length;
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -161,7 +184,7 @@ const TransactionsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Transactions</p>
-                <p className="text-2xl font-bold">{transactions.length}</p>
+                <p className="text-2xl font-bold">{transactionRows.length}</p>
               </div>
             </div>
           </GlassCard>
