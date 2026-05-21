@@ -61,9 +61,9 @@ export const Navbar: React.FC = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/60 bg-background/75 backdrop-blur-2xl shadow-[0_12px_32px_hsl(222_40%_10%/0.06)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex min-h-[84px] md:min-h-[88px] items-center justify-between py-2">
+        <div className="flex min-h-[84px] md:min-h-[88px] flex-wrap items-center justify-between gap-3 py-2 lg:flex-nowrap">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex shrink-0 items-center gap-2">
             <motion.div
               className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary via-primary/95 to-secondary flex items-center justify-center shadow-[0_14px_30px_hsl(217_91%_60%/0.22)]"
               whileHover={{ scale: 1.05 }}
@@ -77,7 +77,7 @@ export const Navbar: React.FC = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-2 rounded-full border border-border/60 bg-card/70 px-2 py-2 backdrop-blur-md shadow-[0_12px_30px_hsl(222_40%_10%/0.06)]">
+          <div className="hidden md:flex min-w-0 flex-1 flex-wrap items-center justify-center gap-1.5 rounded-full border border-border/60 bg-card/70 px-1.5 py-1.5 backdrop-blur-md shadow-[0_12px_30px_hsl(222_40%_10%/0.06)]">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
@@ -94,7 +94,7 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Wallet & Auth */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex shrink-0 items-center gap-3">
             {isAuthenticated && user ? (
               <>
                 <button
@@ -170,7 +170,7 @@ export const Navbar: React.FC = () => {
                 >
                   {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </button>
-                <Link to="/login">
+                <Link to="/login" className="shrink-0">
                   <NeonButton size="sm">
                     <Wallet className="w-4 h-4 mr-2" />
                     {isConnected ? 'Login' : 'Connect Wallet'}

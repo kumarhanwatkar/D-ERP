@@ -25,7 +25,7 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
   onClick,
   type = 'button',
 }) => {
-  const baseClasses = 'relative inline-flex items-center justify-center gap-2 font-semibold tracking-wide transition-all duration-300 rounded-full border disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-offset-2';
+  const baseClasses = 'relative inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold tracking-wide transition-all duration-300 rounded-full border disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-offset-2';
 
   const variantClasses = {
     primary: 'border-transparent bg-gradient-to-r from-primary via-primary/90 to-secondary text-primary-foreground shadow-[0_14px_30px_hsl(217_91%_60%/0.22)] hover:-translate-y-0.5 hover:shadow-[0_18px_40px_hsl(217_91%_60%/0.3)]',
