@@ -326,14 +326,26 @@ const ensureDirectory = async (filePath) => {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
 };
 
+const saveLocalDatabase = async (database) => {
+  await ensureDirectory(dataFilePath);
+  await fs.writeFile(dataFilePath, JSON.stringify(database, null, 2));
+};
+
 export const loadDatabase = async () => {
   if (cachedDatabase) {
     return cachedDatabase;
   }
 
   if (isMongoEnabled()) {
-    cachedDatabase = normalizeDatabase(await loadMongoState(defaultDatabase));
-    return cachedDatabase;
+    try {
+      cachedDatabase = normalizeDatabase(await loadMongoState(defaultDatabase));
+      return cachedDatabase;
+    } catch (error) {
+      console.warn('Mongo unavailable, falling back to local JSON store:', error?.message || error);
+      cachedDatabase = clone(defaultDatabase);
+      await saveLocalDatabase(cachedDatabase);
+      return cachedDatabase;
+    }
   }
 
   try {
@@ -355,13 +367,16 @@ export const saveDatabase = async (database) => {
   cachedDatabase = mergeDefaults(database);
 
   if (isMongoEnabled()) {
-    await connectMongo();
-    await saveMongoState(cachedDatabase);
-    return cachedDatabase;
+    try {
+      await connectMongo();
+      await saveMongoState(cachedDatabase);
+      return cachedDatabase;
+    } catch (error) {
+      console.warn('Mongo save failed, writing to local JSON store:', error?.message || error);
+    }
   }
 
-  await ensureDirectory(dataFilePath);
-  await fs.writeFile(dataFilePath, JSON.stringify(cachedDatabase, null, 2));
+  await saveLocalDatabase(cachedDatabase);
   return cachedDatabase;
 };
 

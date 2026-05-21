@@ -195,5 +195,3 @@ For issues and feature requests, please open a GitHub issue.
 ---
 
 **Built for the future of decentralized payroll** 🚀
-
->>>>>>> 4488d0b (Add production-ready Web3 ERP backend)

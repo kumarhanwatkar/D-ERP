@@ -7,14 +7,12 @@ services:
     startCommand: npm start
     autoDeploy: true
     envVars:
-      - key: PORT
-        value: 3001
       - key: CORS_ORIGIN
         sync: false
       - key: JWT_SECRET
         sync: false
       - key: ALLOW_DEMO_LOGIN
-        value: true
+        value: false
       - key: MONGO_URI
         sync: false
       - key: MONGO_DB_NAME
